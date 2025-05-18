@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/course_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_profile_provider.dart';
@@ -76,6 +79,20 @@ class SettingsScreen extends StatelessWidget {
                   _showPrivacyPolicyDialog(context);
                 },
               ),
+            ],
+          ),
+          
+          // Developer Info
+          _buildSettingsSection(
+            context,
+            'Developer',
+            [
+              ListTile(
+                leading: const FaIcon(FontAwesomeIcons.code, color: AppTheme.primaryColor),
+                title: const Text('Created with ❤️ by'),
+                subtitle: const Text('Asish Kumar Yeleti'),
+              ),
+              _buildDeveloperSocialLinks(context),
             ],
           ),
         ],
@@ -463,6 +480,99 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildDeveloperSocialLinks(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSocialButton(
+            context,
+            icon: FontAwesomeIcons.linkedin,
+            label: 'LinkedIn',
+            url: 'https://www.linkedin.com/in/asishkumaryeleti/',
+            color: const Color(0xFF0077B5),
+          ),
+          const SizedBox(width: 16),
+          _buildSocialButton(
+            context,
+            icon: FontAwesomeIcons.github,
+            label: 'GitHub',
+            url: 'https://github.com/noiseless47',
+            color: const Color(0xFF333333),
+          ),
+          const SizedBox(width: 16),
+          _buildSocialButton(
+            context,
+            icon: FontAwesomeIcons.instagram,
+            label: 'Instagram',
+            url: 'https://www.instagram.com/asishky/',
+            color: const Color(0xFFE1306C),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String url,
+    required Color color,
+  }) {
+    return InkWell(
+      onTap: () => _launchUrl(url),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: FaIcon(
+                  icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
   }
 }
 
