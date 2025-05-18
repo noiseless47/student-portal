@@ -71,6 +71,8 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.info_outline),
                 title: const Text('App Version'),
                 subtitle: const Text('1.0.0'),
+                trailing: const Icon(Icons.launch, size: 20),
+                onTap: () => _launchUrl('https://www.asishky.me/app-updates'),
               ),
               ListTile(
                 leading: const Icon(Icons.shield_outlined),
@@ -510,6 +512,14 @@ class SettingsScreen extends StatelessWidget {
             label: 'Instagram',
             url: 'https://www.instagram.com/asishky/',
             color: const Color(0xFFE1306C),
+          ),
+          const SizedBox(width: 16),
+          _buildSocialButton(
+            context,
+            icon: FontAwesomeIcons.globe,
+            label: 'Website',
+            url: 'https://www.asishky.me',
+            color: const Color(0xFF2C974B),
           ),
         ],
       ),
