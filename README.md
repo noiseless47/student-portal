@@ -1,14 +1,14 @@
-# 📚 Student Portal
+# 📚 ClassMate
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-Active-success)
 ![Flutter](https://img.shields.io/badge/Flutter-Powered-blue?logo=flutter)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20Android%20%7C%20Web%20%7C%20Windows%20%7C%20macOS-lightgrey)
 
-A modern student portal application built with Flutter that helps students manage their academic life efficiently.
+A modern student productivity app built with Flutter that helps students manage their academic life efficiently.
 
 <p align="center">
-  <img src="assets/images/app_icon.png" alt="Student Portal Logo" width="150"/>
+  <img src="assets/images/app_icon.png" alt="ClassMate Logo" width="150"/>
 </p>
 
 ## ✨ Features

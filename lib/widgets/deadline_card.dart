@@ -158,7 +158,7 @@ class DeadlineCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${deadline.formattedDate} at ${deadline.formattedTime}',
+                    '${deadline.smartDate} at ${deadline.formattedTime}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],

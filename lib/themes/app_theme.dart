@@ -6,9 +6,9 @@ class AppTheme {
   AppTheme._();
   
   // Colors - Light Theme
-  static const Color primaryColor = Color(0xFF6200EE);
-  static const Color secondaryColor = Color(0xFF03DAC6);
-  static const Color accentColor = Color(0xFFFF4081);
+  static const Color primaryColor = Color(0xFF1976D2);
+  static const Color secondaryColor = Color(0xFF2196F3);
+  static const Color accentColor = Color(0xFF42A5F5);
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color cardColor = Colors.white;
   static const Color errorColor = Color(0xFFB00020);
@@ -22,9 +22,9 @@ class AppTheme {
   static const Color infoColor = Color(0xFF2196F3);
 
   // Colors - Dark Theme
-  static const Color darkPrimaryColor = Color(0xFF6200EE);
-  static const Color darkSecondaryColor = Color(0xFF03DAC6);
-  static const Color darkAccentColor = Color(0xFFFF4081);
+  static const Color darkPrimaryColor = Color(0xFF1976D2);
+  static const Color darkSecondaryColor = Color(0xFF2196F3);
+  static const Color darkAccentColor = Color(0xFF42A5F5);
   static const Color darkBackgroundColor = Color(0xFF121212);
   static const Color darkCardColor = Color(0xFF1E1E1E);
   static const Color darkErrorColor = Color(0xFFCF6679);
@@ -35,7 +35,7 @@ class AppTheme {
   
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF6200EE), Color(0xFF9D4EDD)],
+    colors: [Color(0xFF1976D2), Color(0xFF2196F3)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -148,7 +148,7 @@ class AppTheme {
         backgroundColor: cardColor,
         indicatorColor: primaryColor.withOpacity(0.12),
         labelTextStyle: MaterialStateProperty.all(
-          GoogleFonts.poppins(
+          GoogleFonts.lexend(
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -275,7 +275,7 @@ class AppTheme {
         backgroundColor: darkCardColor,
         indicatorColor: darkPrimaryColor.withOpacity(0.12),
         labelTextStyle: MaterialStateProperty.all(
-          GoogleFonts.poppins(
+          GoogleFonts.lexend(
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -314,78 +314,90 @@ class AppTheme {
   static TextTheme _getTextTheme(bool isDark) {
     final Color textPrimaryColor = isDark ? darkTextPrimary : textPrimary;
     final Color textSecondaryColor = isDark ? darkTextSecondary : textSecondary;
-    
     return TextTheme(
-      displayLarge: GoogleFonts.playfairDisplay(
+      displayLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 96,
         fontWeight: FontWeight.w300,
         letterSpacing: -1.5,
         color: textPrimaryColor,
       ),
-      displayMedium: GoogleFonts.playfairDisplay(
+      displayMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 60,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
         color: textPrimaryColor,
       ),
-      displaySmall: GoogleFonts.playfairDisplay(
+      displaySmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 48,
         fontWeight: FontWeight.w400,
         color: textPrimaryColor,
       ),
-      headlineMedium: GoogleFonts.playfairDisplay(
+      headlineMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 34,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
         color: textPrimaryColor,
       ),
-      headlineSmall: GoogleFonts.playfairDisplay(
+      headlineSmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 24,
         fontWeight: FontWeight.w400,
         color: textPrimaryColor,
       ),
-      titleLarge: GoogleFonts.playfairDisplay(
+      titleLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 20,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
         color: textPrimaryColor,
       ),
-      titleMedium: GoogleFonts.poppins(
+      titleMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 16,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.15,
         color: textPrimaryColor,
       ),
-      titleSmall: GoogleFonts.poppins(
+      titleSmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
         color: textPrimaryColor,
       ),
-      bodyLarge: GoogleFonts.poppins(
+      bodyLarge: TextStyle(
+        fontFamily: 'Lexend',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
         color: textPrimaryColor,
       ),
-      bodyMedium: GoogleFonts.poppins(
+      bodyMedium: TextStyle(
+        fontFamily: 'Lexend',
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
         color: textSecondaryColor,
       ),
-      labelLarge: GoogleFonts.poppins(
+      labelLarge: TextStyle(
+        fontFamily: 'Lexend',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.25,
       ),
-      bodySmall: GoogleFonts.poppins(
+      bodySmall: TextStyle(
+        fontFamily: 'Lexend',
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
         color: textSecondaryColor,
       ),
-      labelSmall: GoogleFonts.poppins(
+      labelSmall: TextStyle(
+        fontFamily: 'Lexend',
         fontSize: 10,
         fontWeight: FontWeight.w400,
         letterSpacing: 1.5,

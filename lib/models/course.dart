@@ -3,6 +3,7 @@ class Course {
   final String name;
   final String code;
   final String professor;
+  final String room; // Common room for the course
   final List<ClassSchedule> schedule;
   int classesHeld;      // Renamed from totalSessions
   int classesAttended;  // Renamed from attendedSessions
@@ -13,6 +14,7 @@ class Course {
     required this.name,
     required this.code,
     required this.professor,
+    this.room = '',
     required this.schedule,
     this.classesHeld = 0,     // Default to 0, renamed
     this.classesAttended = 0, // Renamed
@@ -50,6 +52,7 @@ class Course {
     String? name,
     String? code,
     String? professor,
+    String? room,
     List<ClassSchedule>? schedule,
     int? classesHeld,
     int? classesAttended,
@@ -60,6 +63,7 @@ class Course {
       name: name ?? this.name,
       code: code ?? this.code,
       professor: professor ?? this.professor,
+      room: room ?? this.room,
       schedule: schedule ?? this.schedule,
       classesHeld: classesHeld ?? this.classesHeld,
       classesAttended: classesAttended ?? this.classesAttended,
@@ -73,6 +77,7 @@ class Course {
       'name': name,
       'code': code,
       'professor': professor,
+      'room': room,
       'schedule': schedule.map((s) => s.toJson()).toList(),
       'classesHeld': classesHeld,
       'classesAttended': classesAttended,
@@ -104,6 +109,7 @@ class Course {
       name: json['name'],
       code: json['code'],
       professor: json['professor'],
+      room: json.containsKey('room') ? json['room'] : '',
       schedule: (json['schedule'] as List)
           .map((s) => ClassSchedule.fromJson(s))
           .toList(),
@@ -118,13 +124,13 @@ class ClassSchedule {
   final int day; // 1 = Monday, 2 = Tuesday, etc.
   final String startTime;
   final String endTime;
-  final String room;
+  final String? room; // Optional now, will use course.room if null
   
   ClassSchedule({
     required this.day,
     required this.startTime,
     required this.endTime,
-    required this.room,
+    this.room,
   });
   
   String get dayName {

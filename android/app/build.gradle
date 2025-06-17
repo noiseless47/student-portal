@@ -6,22 +6,25 @@ plugins {
 }
 
 android {
-    namespace = "com.example.student_help"
+    namespace = "com.example.classmate"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        // Enable support for Java 17 features
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // Enable core library desugaring
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = '17'
     }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.student_help"
+        applicationId = "com.example.classmate"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -37,8 +40,25 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+
+    lint {
+        disable 'InvalidPackage'
+        checkReleaseBuilds false
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.bouncycastle:bcprov-jdk18on:1.77'
+    }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.76'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.76'
 }

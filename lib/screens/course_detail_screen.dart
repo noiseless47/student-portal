@@ -4,18 +4,26 @@ import '../models/course.dart';
 import '../themes/app_theme.dart';
 import '../providers/theme_provider.dart';
 import 'add_edit_course_screen.dart';
+import '../providers/course_provider.dart';
 
-class CourseDetailScreen extends StatelessWidget {
+class CourseDetailScreen extends StatefulWidget {
   final Course course;
 
   const CourseDetailScreen({Key? key, required this.course}) : super(key: key);
 
   @override
+  State<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
+
+class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     final primaryColor = isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.primaryColor;
     final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.grey[100];
-    
+    final courseProvider = Provider.of<CourseProvider>(context);
+    final course = courseProvider.getCourseById(widget.course.id) ?? widget.course;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -23,8 +31,9 @@ class CourseDetailScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 180,
             pinned: true,
+            backgroundColor: isDarkMode ? Colors.black : Colors.white,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(course.name),
+              title: Text(course.name, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -78,7 +87,7 @@ class CourseDetailScreen extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: () => _editCourse(context),
+                onPressed: () => _editCourse(context, course),
               ),
             ],
           ),
@@ -147,13 +156,50 @@ class CourseDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Attendance',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Attendance',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Outfit',
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.check_circle_outline),
+                                  color: Colors.green,
+                                  tooltip: 'Mark Extra Class Attended',
+                                  onPressed: () {
+                                    courseProvider.markAttendanceWithStatus(course.id, true);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Marked extra class as attended'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.cancel_outlined),
+                                  color: Colors.red,
+                                  tooltip: 'Mark Extra Class Absent',
+                                  onPressed: () {
+                                    courseProvider.markAttendanceWithStatus(course.id, false);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Marked extra class as absent'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 24),
                         Row(
@@ -203,10 +249,10 @@ class CourseDetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Class Schedule',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: isDarkMode ? Colors.white : Colors.black,
+                                fontFamily: 'Outfit',
                               ),
                             ),
                             Container(
@@ -234,13 +280,13 @@ class CourseDetailScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildDayCircle(context, 'M', 1, primaryColor),
-                              _buildDayCircle(context, 'T', 2, primaryColor),
-                              _buildDayCircle(context, 'W', 3, primaryColor),
-                              _buildDayCircle(context, 'T', 4, primaryColor),
-                              _buildDayCircle(context, 'F', 5, primaryColor),
-                              _buildDayCircle(context, 'S', 6, primaryColor),
-                              _buildDayCircle(context, 'S', 7, primaryColor),
+                              _buildDayCircle(context, 'M', 1, primaryColor, course),
+                              _buildDayCircle(context, 'T', 2, primaryColor, course),
+                              _buildDayCircle(context, 'W', 3, primaryColor, course),
+                              _buildDayCircle(context, 'T', 4, primaryColor, course),
+                              _buildDayCircle(context, 'F', 5, primaryColor, course),
+                              _buildDayCircle(context, 'S', 6, primaryColor, course),
+                              _buildDayCircle(context, 'S', 7, primaryColor, course),
                             ],
                           ),
                         ),
@@ -296,6 +342,7 @@ class CourseDetailScreen extends StatelessWidget {
                                           style: TextStyle(
                                             color: primaryColor,
                                             fontWeight: FontWeight.bold,
+                                            fontFamily: 'Outfit',
                                           ),
                                         ),
                                       ),
@@ -313,6 +360,7 @@ class CourseDetailScreen extends StatelessWidget {
                                                 '${schedule.startTime} - ${schedule.endTime}',
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Lexend',
                                                 ),
                                               ),
                                             ],
@@ -323,9 +371,10 @@ class CourseDetailScreen extends StatelessWidget {
                                               const Icon(Icons.room, size: 16),
                                               const SizedBox(width: 4),
                                               Text(
-                                                schedule.room,
+                                                schedule.room ?? course.room,
                                                 style: TextStyle(
                                                   color: isDarkMode ? Colors.grey : Colors.grey[700],
+                                                  fontFamily: 'Lexend',
                                                 ),
                                               ),
                                             ],
@@ -442,8 +491,8 @@ class CourseDetailScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildDayCircle(BuildContext context, String day, int dayNumber, Color color) {
-    // Check if there's a class on this day
+  Widget _buildDayCircle(BuildContext context, String label, int dayNumber, Color color, Course course) {
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     final hasClass = course.schedule.any((schedule) => schedule.day == dayNumber);
     
     return Column(
@@ -464,7 +513,7 @@ class CourseDetailScreen extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              day,
+              label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: hasClass ? Colors.white : Colors.grey,
@@ -476,7 +525,7 @@ class CourseDetailScreen extends StatelessWidget {
     );
   }
   
-  void _editCourse(BuildContext context) async {
+  void _editCourse(BuildContext context, Course course) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

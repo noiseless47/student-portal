@@ -22,6 +22,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   late TextEditingController _nameController;
   late TextEditingController _codeController;
   late TextEditingController _professorController;
+  late TextEditingController _roomController;
   late TextEditingController _classesHeldController;
   late TextEditingController _classesAttendedController;
   
@@ -37,6 +38,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     _nameController = TextEditingController(text: course?.name ?? '');
     _codeController = TextEditingController(text: course?.code ?? '');
     _professorController = TextEditingController(text: course?.professor ?? '');
+    _roomController = TextEditingController(text: course?.room ?? '');
     _classesHeldController = TextEditingController(text: course?.classesHeld.toString() ?? '0');
     _classesAttendedController = TextEditingController(text: course?.classesAttended.toString() ?? '0');
     
@@ -51,6 +53,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     _nameController.dispose();
     _codeController.dispose();
     _professorController.dispose();
+    _roomController.dispose();
     _classesHeldController.dispose();
     _classesAttendedController.dispose();
     super.dispose();
@@ -81,6 +84,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         name: _nameController.text.trim(),
         code: _codeController.text.trim(),
         professor: _professorController.text.trim(),
+        room: _roomController.text.trim(),
         schedule: _schedules,
         classesHeld: classesHeld,
         classesAttended: classesAttended,
@@ -166,295 +170,325 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.course != null;
     
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditing ? 'Edit Course' : 'Add Course'),
-        actions: [
-          TextButton.icon(
-            onPressed: _isLoading ? null : _saveCourse,
-            icon: const Icon(Icons.save, color: Colors.white),
-            label: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Course Basic Info
-                    Text(
-                      'Course Information',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Course Name
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Course Name',
-                        hintText: 'e.g. Introduction to Computer Science',
-                        prefixIcon: Icon(Icons.book),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter course name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Course Code
-                    TextFormField(
-                      controller: _codeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Course Code',
-                        hintText: 'e.g. CS 101',
-                        prefixIcon: Icon(Icons.code),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter course code';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Professor
-                    TextFormField(
-                      controller: _professorController,
-                      decoration: const InputDecoration(
-                        labelText: 'Professor',
-                        hintText: 'e.g. Dr. John Smith',
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter professor name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Classes Held and Attended Section
-                    Text(
-                      'Attendance',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Classes Held with text field and buttons
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Label
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Classes Held:',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                        ),
-                        // Minus button
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: () {
-                            final value = int.tryParse(_classesHeldController.text) ?? 0;
-                            if (value > 0) {
-                              setState(() {
-                                _classesHeldController.text = (value - 1).toString();
-                              });
-                            }
-                          },
-                        ),
-                        // Text field
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _classesHeldController,
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Required';
-                              }
-                              final number = int.tryParse(value);
-                              if (number == null || number < 0) {
-                                return 'Invalid';
-                              }
-                              return null;
-                            },
-                            onChanged: (value) {
-                              // Ensure attended doesn't exceed held
-                              final held = int.tryParse(value) ?? 0;
-                              final attended = int.tryParse(_classesAttendedController.text) ?? 0;
-                              if (attended > held) {
-                                setState(() {
-                                  _classesAttendedController.text = held.toString();
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        // Plus button
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () {
-                            final value = int.tryParse(_classesHeldController.text) ?? 0;
-                            setState(() {
-                              _classesHeldController.text = (value + 1).toString();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Classes Attended with text field and buttons
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Label
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Classes Attended:',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                        ),
-                        // Minus button
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: () {
-                            final value = int.tryParse(_classesAttendedController.text) ?? 0;
-                            if (value > 0) {
-                              setState(() {
-                                _classesAttendedController.text = (value - 1).toString();
-                              });
-                            }
-                          },
-                        ),
-                        // Text field
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _classesAttendedController,
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Required';
-                              }
-                              final attended = int.tryParse(value);
-                              if (attended == null || attended < 0) {
-                                return 'Invalid';
-                              }
-                              
-                              final held = int.tryParse(_classesHeldController.text) ?? 0;
-                              if (attended > held) {
-                                return 'Too high';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        // Plus button
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () {
-                            final attended = int.tryParse(_classesAttendedController.text) ?? 0;
-                            final held = int.tryParse(_classesHeldController.text) ?? 0;
-                            
-                            if (attended < held) {
-                              setState(() {
-                                _classesAttendedController.text = (attended + 1).toString();
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Class Schedules
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Class Schedules',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        TextButton.icon(
-                          onPressed: _addSchedule,
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Time'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    if (_schedules.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            'No class schedules added yet',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _schedules.length,
-                        itemBuilder: (context, index) {
-                          final schedule = _schedules[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              title: Text(schedule.dayName),
-                              subtitle: Text('${schedule.startTime} - ${schedule.endTime} in ${schedule.room}'),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () => _editSchedule(index),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () => _removeSchedule(index),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        if (_hasUnsavedChanges()) {
+          final shouldPop = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Unsaved Changes'),
+              content: const Text('You have unsaved changes. Do you want to discard them?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
                 ),
-              ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Discard'),
+                ),
+              ],
             ),
+          );
+          return shouldPop ?? false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(isEditing ? 'Edit Course' : 'Add Course'),
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Course Basic Info
+                            Text(
+                              'Course Information',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Course Name
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Course Name',
+                                hintText: 'Enter course name',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter a course name';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Course Code
+                            TextFormField(
+                              controller: _codeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Course Code',
+                                hintText: 'Enter course code',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter a course code';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Professor Name
+                            TextFormField(
+                              controller: _professorController,
+                              decoration: const InputDecoration(
+                                labelText: 'Professor Name',
+                                hintText: 'Enter professor name',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter professor name';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Room
+                            TextFormField(
+                              controller: _roomController,
+                              decoration: const InputDecoration(
+                                labelText: 'Room',
+                                hintText: 'Enter room number',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter room number';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Attendance Information
+                            Text(
+                              'Attendance Information',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Classes Held
+                            TextFormField(
+                              controller: _classesHeldController,
+                              decoration: const InputDecoration(
+                                labelText: 'Classes Held',
+                                hintText: 'Enter number of classes held',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter number of classes held';
+                                }
+                                final number = int.tryParse(value);
+                                if (number == null || number < 0) {
+                                  return 'Please enter a valid number';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Classes Attended
+                            TextFormField(
+                              controller: _classesAttendedController,
+                              decoration: const InputDecoration(
+                                labelText: 'Classes Attended',
+                                hintText: 'Enter number of classes attended',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter number of classes attended';
+                                }
+                                final number = int.tryParse(value);
+                                if (number == null || number < 0) {
+                                  return 'Please enter a valid number';
+                                }
+                                final classesHeld = int.tryParse(_classesHeldController.text) ?? 0;
+                                if (number > classesHeld) {
+                                  return 'Classes attended cannot exceed classes held';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Schedule Section
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Class Schedule',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                TextButton.icon(
+                                  onPressed: _addSchedule,
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Add Schedule'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Schedule List
+                            if (_schedules.isEmpty)
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(
+                                    'No schedules added yet',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _schedules.length,
+                                itemBuilder: (context, index) {
+                                  final schedule = _schedules[index];
+                                  return Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      title: Text(
+                                        '${_getDayName(schedule.day)} ${_formatTime(schedule.startTime)} - ${_formatTime(schedule.endTime)}',
+                                      ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () => _editSchedule(index),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () => _removeSchedule(index),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _saveCourse,
+                        icon: const Icon(Icons.save),
+                        label: const Text('Save Course'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
+  }
+
+  bool _hasUnsavedChanges() {
+    if (widget.course == null) {
+      // For new course, check if any field is filled
+      return _nameController.text.isNotEmpty ||
+          _codeController.text.isNotEmpty ||
+          _professorController.text.isNotEmpty ||
+          _roomController.text.isNotEmpty ||
+          _classesHeldController.text != '0' ||
+          _classesAttendedController.text != '0' ||
+          _schedules.isNotEmpty;
+    } else {
+      // For editing, check if any field is different from original
+      return _nameController.text != widget.course!.name ||
+          _codeController.text != widget.course!.code ||
+          _professorController.text != widget.course!.professor ||
+          _roomController.text != widget.course!.room ||
+          _classesHeldController.text != widget.course!.classesHeld.toString() ||
+          _classesAttendedController.text != widget.course!.classesAttended.toString() ||
+          !_areSchedulesEqual(_schedules, widget.course!.schedule);
+    }
+  }
+
+  bool _areSchedulesEqual(List<ClassSchedule> a, List<ClassSchedule> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].day != b[i].day ||
+          a[i].startTime != b[i].startTime ||
+          a[i].endTime != b[i].endTime ||
+          a[i].room != b[i].room) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _getDayName(int day) {
+    switch (day) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      case 7:
+        return 'Sunday';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String _formatTime(String timeString) {
+    // The time is already in the correct format from the model
+    return timeString;
   }
 }
 
@@ -478,7 +512,6 @@ class _AddScheduleBottomSheetState extends State<AddScheduleBottomSheet> {
   late int _selectedDay;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
-  late TextEditingController _roomController;
   
   @override
   void initState() {
@@ -495,14 +528,6 @@ class _AddScheduleBottomSheetState extends State<AddScheduleBottomSheet> {
     _endTime = initialSchedule != null
         ? _parseTimeString(initialSchedule.endTime)
         : const TimeOfDay(hour: 10, minute: 30);
-        
-    _roomController = TextEditingController(text: initialSchedule?.room ?? '');
-  }
-  
-  @override
-  void dispose() {
-    _roomController.dispose();
-    super.dispose();
   }
   
   TimeOfDay _parseTimeString(String timeString) {
@@ -567,7 +592,6 @@ class _AddScheduleBottomSheetState extends State<AddScheduleBottomSheet> {
         day: _selectedDay,
         startTime: _formatTimeOfDay(_startTime),
         endTime: _formatTimeOfDay(_endTime),
-        room: _roomController.text.trim(),
       );
       
       widget.onSave(schedule);
@@ -661,23 +685,6 @@ class _AddScheduleBottomSheetState extends State<AddScheduleBottomSheet> {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            
-            // Room
-            TextFormField(
-              controller: _roomController,
-              decoration: const InputDecoration(
-                labelText: 'Room',
-                hintText: 'e.g. B-201',
-                prefixIcon: Icon(Icons.room),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter room number';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 24),
             

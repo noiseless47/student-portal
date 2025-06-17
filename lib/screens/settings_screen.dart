@@ -6,13 +6,21 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/course_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_profile_provider.dart';
+import '../providers/deadline_provider.dart';
 import '../themes/app_theme.dart';
 import '../models/course.dart';
+import '../utils/toast_util.dart';
 import 'add_edit_course_screen.dart';
+import 'edit_profile_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
+  @override
+  _SettingsScreenState createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +78,7 @@ class SettingsScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: const Text('App Version'),
-                subtitle: const Text('1.0.0'),
+                subtitle: const Text('2.1.0'),
                 trailing: const Icon(Icons.launch, size: 20),
                 onTap: () => _launchUrl('https://www.asishky.me/app-updates'),
               ),
@@ -125,9 +133,7 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildUserProfileSettings(BuildContext context) {
     final userProfileProvider = Provider.of<UserProfileProvider>(context);
     
-    return Column(
-      children: [
-        ListTile(
+    return ListTile(
           leading: const Icon(Icons.person),
           title: const Text('Full Name'),
           subtitle: Text(
@@ -136,118 +142,61 @@ class SettingsScreen extends StatelessWidget {
                 : 'Not set'
           ),
           trailing: const Icon(Icons.edit),
-          onTap: () => _showNameEditDialog(context),
-        ),
-        ListTile(
-          leading: const Icon(Icons.face),
-          title: const Text('Nickname'),
-          subtitle: Text(
-            userProfileProvider.nickname.isNotEmpty 
-                ? userProfileProvider.nickname 
-                : 'Not set'
-          ),
-          trailing: const Icon(Icons.edit),
-          onTap: () => _showNicknameEditDialog(context),
-        ),
-      ],
+          onTap: () => _navigateToEditProfile(context, 'name'),
     );
   }
   
-  void _showNameEditDialog(BuildContext context) {
-    final userProfileProvider = Provider.of<UserProfileProvider>(context, listen: false);
-    final TextEditingController controller = TextEditingController(text: userProfileProvider.name);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Full Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Full Name',
-            hintText: 'Enter your full name',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                userProfileProvider.updateProfile(name: controller.text.trim());
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Name updated successfully')),
-                );
-              }
-            },
-            child: const Text('SAVE'),
-          ),
-        ],
+  void _navigateToEditProfile(BuildContext context, String fieldToEdit) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(fieldToEdit: fieldToEdit),
       ),
-    ).then((_) {
-      controller.dispose();
-    });
-  }
-  
-  void _showNicknameEditDialog(BuildContext context) {
-    final userProfileProvider = Provider.of<UserProfileProvider>(context, listen: false);
-    final TextEditingController controller = TextEditingController(text: userProfileProvider.nickname);
+    );
     
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Nickname'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Nickname',
-            hintText: 'Enter your nickname',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                userProfileProvider.updateProfile(nickname: controller.text.trim());
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nickname updated successfully')),
-                );
-              }
-            },
-            child: const Text('SAVE'),
-          ),
-        ],
-      ),
-    ).then((_) {
-      controller.dispose();
-    });
+    if (result == true) {
+      // Field updated successfully, show feedback to user
+      ToastUtil.showSuccess('${fieldToEdit.capitalize()} updated successfully');
+    }
   }
   
   Widget _buildThemeSwitcher(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
-    return SwitchListTile(
-      title: const Text('Dark Mode'),
-      subtitle: Text(themeProvider.isDarkMode ? 'Currently using dark theme' : 'Currently using light theme'),
-      secondary: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-      value: themeProvider.isDarkMode,
-      onChanged: (_) {
-        themeProvider.toggleTheme();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'App Theme',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        RadioListTile<ThemeMode>(
+          title: const Text('Light'),
+          value: ThemeMode.light,
+          groupValue: themeProvider.themeMode,
+          onChanged: (mode) {
+            if (mode != null) themeProvider.setThemeMode(mode);
+          },
+        ),
+        RadioListTile<ThemeMode>(
+          title: const Text('Dark'),
+          value: ThemeMode.dark,
+          groupValue: themeProvider.themeMode,
+          onChanged: (mode) {
+            if (mode != null) themeProvider.setThemeMode(mode);
+          },
+        ),
+        RadioListTile<ThemeMode>(
+          title: const Text('System Default'),
+          value: ThemeMode.system,
+          groupValue: themeProvider.themeMode,
+          onChanged: (mode) {
+            if (mode != null) themeProvider.setThemeMode(mode);
       },
+        ),
+      ],
     );
   }
   
@@ -367,12 +316,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               Provider.of<CourseProvider>(context, listen: false).deleteCourseCascade(course.id, context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${course.name} deleted'),
-                  backgroundColor: AppTheme.errorColor,
-                ),
-              );
+              ToastUtil.showError('${course.name} deleted');
             },
           ),
         ],
@@ -471,12 +415,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               Provider.of<CourseProvider>(context, listen: false).clearAllCourses(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('All courses and deadlines cleared'),
-                  backgroundColor: AppTheme.errorColor,
-                ),
-              );
+              ToastUtil.showError('All courses and deadlines cleared');
             },
           ),
         ],
@@ -589,4 +528,11 @@ class SettingsScreen extends StatelessWidget {
 // Helper function to handle min of two integers
 int min(int a, int b) {
   return a < b ? a : b;
+}
+
+// Helper extension to capitalize strings
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
+  }
 }

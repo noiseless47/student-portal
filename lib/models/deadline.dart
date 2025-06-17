@@ -33,6 +33,24 @@ class Deadline {
   
   String get formattedTime => DateFormat('hh:mm a').format(dueDate);
   
+  String get smartDate {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dueDay = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    
+    if (dueDay == today) {
+      return 'Today';
+    } else if (dueDay == tomorrow) {
+      return 'Tomorrow';
+    } else if (dueDay == yesterday) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('MMM d').format(dueDate);
+    }
+  }
+  
   bool get isUpcoming => dueDate.isAfter(DateTime.now());
   
   bool get isPastDue => !isUpcoming && !isCompleted;

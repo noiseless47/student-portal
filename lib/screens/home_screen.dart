@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import '../providers/course_provider.dart';
 import '../providers/deadline_provider.dart';
@@ -10,13 +11,17 @@ import '../utils/id_generator.dart';
 import '../models/course.dart';
 import '../models/deadline.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'add_edit_course_screen.dart';
 import 'add_edit_deadline_screen.dart';
 import 'settings_screen.dart';
 import '../providers/user_profile_provider.dart';
 import 'course_detail_screen.dart';
+import 'profile_screen.dart';
+import 'todo_screen.dart';
+import 'calendar_page.dart';
+import '../utils/toast_util.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -26,7 +31,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
   CalendarFormat _calendarFormat = CalendarFormat.week;
@@ -34,12 +38,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    
-    // Add listener to update the FAB when tab changes
-    _tabController.addListener(() {
-      setState(() {});
-    });
     
     // Load data when the app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -60,219 +57,641 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final isDarkMode = themeProvider.isDarkMode;
     
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: 230.0,
-              floating: false,
-              pinned: true,
-              backgroundColor: innerBoxIsScrolled ? AppTheme.primaryColor : Colors.transparent,
-              elevation: innerBoxIsScrolled ? 4 : 0,
-              title: innerBoxIsScrolled ? Text(
-                'Student Portal',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20, // Slightly smaller when scrolling
-                ),
-              ) : null,
-              titleSpacing: 10,
-              actions: [
-                // Settings button
-                IconButton(
-                  icon: const Icon(Icons.settings, color: Colors.white),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(width: 8), // Add a small padding on the right
-              ],
-              flexibleSpace: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                ),
-                child: FlexibleSpaceBar(
-                  centerTitle: false,
-                  titlePadding: EdgeInsets.zero,
-                  title: null,
-                  background: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 50,
-                        left: 16,
-                        right: 16,
-                        bottom: 65,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+      drawer: Drawer(
+        child: SafeArea(
+          child: Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              final isDarkMode = themeProvider.isDarkMode;
+              final drawerBg = isDarkMode ? Colors.black : Colors.white;
+              final textColor = isDarkMode ? Colors.white : Colors.black;
+              final iconColor = isDarkMode ? Colors.white : Colors.black;
+              final highlightColor = isDarkMode ? const Color(0xFF1976D2) : const Color(0xFF1976D2);
+              return Container(
+                color: drawerBg,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Student Portal title with same indent as welcome text
                           Text(
-                            'Student Portal',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            'ClassMate',
+                            style: TextStyle(
+                              color: textColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 30,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black26,
-                                  offset: Offset(1, 1),
-                                  blurRadius: 2,
-                                ),
-                              ],
+                              fontSize: 22,
+                              fontFamily: 'Outfit',
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 8), // Reduce spacing between title and welcome text
                           Consumer<UserProfileProvider>(
                             builder: (context, userProfileProvider, _) {
-                              final nickname = userProfileProvider.nickname.isNotEmpty 
-                                ? userProfileProvider.nickname
-                                : 'Student';
-                              return Text(
-                                'Welcome Back, $nickname!',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProfileScreen(),
+                                    ),
+                                  );
+                                },
+                                child: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: highlightColor,
+                                  child: Text(
+                                    userProfileProvider.initials,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      fontFamily: 'Outfit',
+                                    ),
+                                  ),
                                 ),
                               );
-                            }
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now()),
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
-                            ),
+                            },
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-              bottom: TabBar(
-                controller: _tabController,
-                indicatorColor: Colors.white,
-                indicatorWeight: 3,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white.withOpacity(0.7),
-                labelPadding: const EdgeInsets.symmetric(vertical: 10.0),
-                tabs: const [
-                  Tab(text: 'Timetable'),
-                  Tab(text: 'Courses'),
-                  Tab(text: 'Deadlines'),
-                ],
-              ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildTimetableTab(),
-            _buildCoursesTab(),
-            _buildDeadlinesTab(),
-          ],
-        ),
-      ),
-      floatingActionButton: _buildFloatingActionButton(),
-    );
-  }
-  
-  Widget _buildFloatingActionButton() {
-    IconData icon;
-    VoidCallback onPressed;
-    
-    switch (_tabController.index) {
-      case 1:
-        icon = Icons.school;
-        onPressed = _addNewCourse;
-        break;
-      case 2:
-        icon = Icons.add_task;
-        onPressed = _addNewDeadline;
-        break;
-      default:
-        // No FAB for timetable tab
-        return const SizedBox.shrink();
-    }
-    
-    return FloatingActionButton(
-      onPressed: onPressed,
-      child: Icon(icon),
-      backgroundColor: AppTheme.primaryColor,
-    );
-  }
-  
-  Widget _buildCoursesTab() {
-    return Consumer<CourseProvider>(
-      builder: (context, courseProvider, child) {
-        if (courseProvider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        final courses = courseProvider.courses;
-        
-        if (courses.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.school_outlined,
-                  size: 64,
-                  color: AppTheme.primaryColor.withOpacity(0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No courses yet',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add your first course to get started',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _addNewCourse,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Course'),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        return AnimationLimiter(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(top: 12, bottom: 80),
-            itemCount: courses.length,
-            itemBuilder: (context, index) {
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: AppTheme.mediumAnimationDuration,
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: CourseCard(
-                      course: courses[index],
-                      onTap: () => _viewCourseDetails(courses[index]),
-                      onMarkAttendance: () => _markAttendance(courses[index].id),
-                      onMarkAbsence: () => _markAttendanceWithStatus(courses[index].id, false),
+                    const SizedBox(height: 8),
+                    // Navigation section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        children: [
+                          // Classes (selected)
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              color: highlightColor,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: ListTile(
+                              leading: Icon(Icons.home, color: Colors.white),
+                              title: const Text(
+                                'Classes',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Outfit',
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            ),
+                          ),
+                          // Calendar
+                          ListTile(
+                            leading: Icon(Icons.calendar_today, color: iconColor),
+                            title: Text(
+                              'Calendar',
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Outfit',
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CalendarPage(),
+                                ),
+                              );
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          // Notifications
+                          ListTile(
+                            leading: Icon(Icons.notifications, color: iconColor),
+                            title: Text(
+                              'Notifications',
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Outfit',
+                              ),
+                            ),
+                            onTap: () {
+                              // TODO: Implement notifications
+                              ToastUtil.show('Notifications coming soon!');
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          // To-do (moved here, styled like notifications)
+                          ListTile(
+                            leading: Icon(Icons.checklist, color: iconColor),
+                            title: Text(
+                              'To-do',
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Outfit',
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _showTodoScreen();
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    // Courses section title
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                        'Courses',
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontFamily: 'Outfit',
+                        ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: highlightColor, size: 20),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddEditCourseScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Course list
+                    Expanded(
+                      child: Consumer<CourseProvider>(
+                        builder: (context, courseProvider, _) {
+                          final courses = courseProvider.courses;
+                          if (courses.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'No courses yet',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            );
+                          }
+                          return ListView.separated(
+                            padding: const EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 8),
+                            itemCount: courses.length,
+                            separatorBuilder: (context, idx) => const SizedBox(height: 0),
+                            itemBuilder: (context, idx) {
+                              final course = courses[idx];
+                              return ListTile(
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        course.name,
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Outfit',
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode ? Colors.white10 : Colors.black.withOpacity(0.05),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${course.classesAttended}/${course.classesHeld}',
+                                        style: TextStyle(
+                                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 11,
+                                          fontFamily: 'Outfit',
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: course.isAttendanceCritical ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${course.attendancePercentage.toStringAsFixed(1)}%',
+                                        style: TextStyle(
+                                          color: course.isAttendanceCritical ? Colors.red : Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          fontFamily: 'Outfit',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Text(
+                                  course.room.isNotEmpty ? course.room : course.code,
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                                    fontFamily: 'Outfit',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _viewCourseDetails(course);
+                                },
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    // Settings and Help at the bottom as ListTiles
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8, top: 4),
+                      child: Column(
+                        children: [
+                          Divider(color: isDarkMode ? Colors.white24 : Colors.black12, height: 1),
+                          ListTile(
+                            leading: Icon(Icons.settings, color: iconColor),
+                            title: Text('Settings', style: TextStyle(color: textColor, fontFamily: 'Lexend')),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                              );
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          ListTile(
+                            leading: Icon(Icons.help_outline, color: iconColor),
+                            title: Text('Help', style: TextStyle(color: textColor, fontFamily: 'Lexend')),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              final Uri url = Uri.parse('https://www.asishky.me/classmate/help/');
+                              if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                                ToastUtil.showError('Could not open help page');
+                              }
+                            },
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
           ),
-        );
-      },
+        ),
+      ),
+      body: SafeArea(
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, _) {
+            final isDarkMode = themeProvider.isDarkMode;
+            final textColor = isDarkMode ? Colors.white : Colors.black;
+            final iconColor = isDarkMode ? Colors.white : Colors.black;
+            final bgColor = isDarkMode ? Colors.black : Colors.white;
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Builder(
+                            builder: (context) => IconButton(
+                              icon: Icon(Icons.menu, color: iconColor, size: 28),
+                              onPressed: () {
+                                Scaffold.of(context).openDrawer();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'ClassMate',
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 28,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Consumer<UserProfileProvider>(
+                        builder: (context, userProfileProvider, _) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ProfileScreen(),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: isDarkMode ? Colors.white : Colors.black,
+                              child: Text(
+                                userProfileProvider.initials,
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.black : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  fontFamily: 'Outfit',
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Consumer2<DeadlineProvider, ThemeProvider>(
+                    builder: (context, deadlineProvider, themeProvider, _) {
+                      final isDarkMode = themeProvider.isDarkMode;
+                      final boxColor = isDarkMode ? Colors.black : Colors.white;
+                      final borderColor = isDarkMode ? Colors.white24 : Colors.black12;
+                      final textColor = isDarkMode ? Colors.white : Colors.black;
+                      final subTextColor = isDarkMode ? Colors.white70 : Colors.black54;
+                      final iconBg = isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05);
+                      final iconColor = isDarkMode ? Colors.white : Colors.black;
+                      final blueLink = themeProvider.isDarkMode 
+                        ? Colors.lightBlue[300]!
+                        : Colors.blue[700]!;
+                      final upcomingDeadlines = deadlineProvider.upcomingDeadlines;
+
+                      return Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: boxColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.checklist_rounded,
+                                        color: isDarkMode ? AppTheme.primaryColor : AppTheme.primaryColor,
+                                        size: 24,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'To-Do This Week',
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => _showTodoScreen(),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Text(
+                                        'View all',
+                                        style: TextStyle(
+                                          color: blueLink,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              if (upcomingDeadlines.isEmpty) ...[
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 24),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle_outline,
+                                          size: 48,
+                                          color: subTextColor.withOpacity(0.5),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'No work coming up immediately',
+                                          style: TextStyle(
+                                            color: subTextColor,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                ...upcomingDeadlines.take(3).map((deadline) => GestureDetector(
+                                  onTap: () => _showTodoScreen(),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    decoration: BoxDecoration(
+                                      color: isDarkMode ? Colors.black12 : Colors.black.withOpacity(0.02),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isDarkMode ? Colors.white12 : Colors.black.withOpacity(0.05),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Priority indicator dot instead of checkbox
+                                          Container(
+                                            margin: const EdgeInsets.only(top: 5),
+                                            width: 8,
+                                            height: 8,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: _getDeadlineTypeColor(deadline.type, isDarkMode),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        deadline.title,
+                                                        style: TextStyle(
+                                                          color: textColor,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 15,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      margin: const EdgeInsets.only(left: 8),
+                                                      padding: const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 3,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: _getDeadlineTypeColor(deadline.type, isDarkMode).withOpacity(0.15),
+                                                        borderRadius: BorderRadius.circular(20),
+                                                      ),
+                                                      child: Text(
+                                                        deadline.deadlineTypeDisplay,
+                                                        style: TextStyle(
+                                                          color: _getDeadlineTypeColor(deadline.type, isDarkMode),
+                                                          fontWeight: FontWeight.w500,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                if (deadline.courseName.isNotEmpty)
+                                                  Text(
+                                                    deadline.courseName,
+                                                    style: TextStyle(
+                                                      color: subTextColor,
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: 13,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                const SizedBox(height: 2),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.access_time_rounded,
+                                                      size: 14,
+                                                      color: subTextColor.withOpacity(0.8),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      '${deadline.smartDate}, ${DateFormat('h:mm a').format(deadline.dueDate)}',
+                                                      style: TextStyle(
+                                                        color: subTextColor,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )).toList(),
+                                if (upcomingDeadlines.length > 3)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Center(
+                                      child: GestureDetector(
+                                        onTap: () => _showTodoScreen(),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'View ${upcomingDeadlines.length - 3} more',
+                                                style: TextStyle(
+                                                  color: blueLink,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 12,
+                                                color: blueLink,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _buildTimetableTab(),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
   
@@ -476,7 +895,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         const SizedBox(width: 4),
                                         Flexible(
                                           child: Text(
-                                            schedule.room,
+                                            schedule.room ?? course.room,
                                             style: Theme.of(context).textTheme.bodyMedium,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -518,144 +937,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ),
       ],
-    );
-  }
-  
-  Widget _buildDeadlinesTab() {
-    return Consumer<DeadlineProvider>(
-      builder: (context, deadlineProvider, child) {
-        if (deadlineProvider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        final upcomingDeadlines = deadlineProvider.upcomingDeadlines;
-        final pastDueDeadlines = deadlineProvider.pastDueDeadlines;
-        final completedDeadlines = deadlineProvider.completedDeadlines;
-        
-        if (upcomingDeadlines.isEmpty && pastDueDeadlines.isEmpty && completedDeadlines.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.assignment_outlined,
-                  size: 64,
-                  color: AppTheme.primaryColor.withOpacity(0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No deadlines yet',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add your first deadline to get started',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _addNewDeadline,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Deadline'),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        return AnimationLimiter(
-          child: ListView(
-            padding: const EdgeInsets.only(top: 16, bottom: 80),
-            children: [
-              if (upcomingDeadlines.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Upcoming',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                ...List.generate(upcomingDeadlines.length, (index) {
-                  return AnimationConfiguration.staggeredList(
-                    position: index,
-                    duration: AppTheme.mediumAnimationDuration,
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: DeadlineCard(
-                          deadline: upcomingDeadlines[index],
-                          onTap: () => _viewDeadlineDetails(upcomingDeadlines[index]),
-                          onToggleCompletion: () => _toggleDeadlineCompletion(upcomingDeadlines[index].id),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-              
-              if (pastDueDeadlines.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Past Due',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.errorColor,
-                    ),
-                  ),
-                ),
-                ...List.generate(pastDueDeadlines.length, (index) {
-                  return AnimationConfiguration.staggeredList(
-                    position: index + upcomingDeadlines.length,
-                    duration: AppTheme.mediumAnimationDuration,
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: DeadlineCard(
-                          deadline: pastDueDeadlines[index],
-                          onTap: () => _viewDeadlineDetails(pastDueDeadlines[index]),
-                          onToggleCompletion: () => _toggleDeadlineCompletion(pastDueDeadlines[index].id),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-              
-              if (completedDeadlines.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Completed',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.successColor,
-                    ),
-                  ),
-                ),
-                ...List.generate(completedDeadlines.length, (index) {
-                  return AnimationConfiguration.staggeredList(
-                    position: index + upcomingDeadlines.length + pastDueDeadlines.length,
-                    duration: AppTheme.mediumAnimationDuration,
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(
-                        child: DeadlineCard(
-                          deadline: completedDeadlines[index],
-                          onTap: () => _viewDeadlineDetails(completedDeadlines[index]),
-                          onToggleCompletion: () => _toggleDeadlineCompletion(completedDeadlines[index].id),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ],
-          ),
-        );
-      },
     );
   }
   
@@ -717,32 +998,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (attended) {
       // Mark as attended - increment both held and attended
       provider.markAttendanceWithStatus(courseId, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Marked as attended'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastUtil.show('Marked as attended');
     } else {
       // Mark as absent - increment only held, not attended
       provider.markAttendanceWithStatus(courseId, false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Marked as absent'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastUtil.show('Marked as absent');
     }
   }
   
   void _markClassCancelled(String courseId) {
     // Class didn't happen - no changes to attendance counts
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Class marked as cancelled'),
-        backgroundColor: Colors.grey,
-      ),
-    );
+    ToastUtil.show('Class marked as cancelled');
   }
 
   void _toggleDeadlineCompletion(String deadlineId) {
@@ -759,18 +1025,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     provider.markAttendanceByDate(courseId, _selectedDay, status);
     
     String statusMessage = 'Marked as $status';
-    Color backgroundColor = status == 'attended' 
-        ? Colors.green
-        : status == 'absent' 
-            ? Colors.red 
-            : Colors.grey;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(statusMessage),
-        backgroundColor: backgroundColor,
-      ),
-    );
+    ToastUtil.show(statusMessage);
   }
 
   Widget _buildAttendanceStatusChip(BuildContext context, String status) {
@@ -835,5 +1091,30 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     } else {
       return Colors.green[700]!; // Dark green for excellent
     }
+  }
+
+  // Helper method to get color based on deadline type
+  Color _getDeadlineTypeColor(DeadlineType type, bool isDarkMode) {
+    switch (type) {
+      case DeadlineType.assignment:
+        return isDarkMode ? Colors.blue[200]! : Colors.blue[600]!;
+      case DeadlineType.exam:
+        return isDarkMode ? Colors.red[200]! : Colors.red[600]!;
+      case DeadlineType.project:
+        return isDarkMode ? Colors.purple[200]! : Colors.purple[600]!;
+      case DeadlineType.presentation:
+        return isDarkMode ? Colors.amber[200]! : Colors.amber[600]!;
+      case DeadlineType.other:
+        return isDarkMode ? Colors.green[200]! : Colors.green[600]!;
+    }
+  }
+
+  void _showTodoScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const TodoScreen(),
+      ),
+    );
   }
 } 

@@ -5,6 +5,7 @@ import '../models/deadline.dart';
 import '../providers/course_provider.dart';
 import '../providers/deadline_provider.dart';
 import '../themes/app_theme.dart';
+import '../utils/toast_util.dart';
 import '../utils/id_generator.dart';
 
 class AddEditDeadlineScreen extends StatefulWidget {
@@ -82,6 +83,24 @@ class _AddEditDeadlineScreenState extends State<AddEditDeadlineScreen> {
     });
   }
   
+  String _getSmartDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateDay = DateTime(date.year, date.month, date.day);
+    
+    if (dateDay == today) {
+      return 'Today (${DateFormat('MMM dd, yyyy').format(date)})';
+    } else if (dateDay == tomorrow) {
+      return 'Tomorrow (${DateFormat('MMM dd, yyyy').format(date)})';
+    } else if (dateDay == yesterday) {
+      return 'Yesterday (${DateFormat('MMM dd, yyyy').format(date)})';
+    } else {
+      return DateFormat('MMM dd, yyyy').format(date);
+    }
+  }
+  
   @override
   void dispose() {
     _titleController.dispose();
@@ -129,16 +148,12 @@ class _AddEditDeadlineScreenState extends State<AddEditDeadlineScreen> {
   
   Future<void> _saveDeadline() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fix the errors in the form')),
-      );
+      ToastUtil.showError('Please fix the errors in the form');
       return;
     }
     
     if (_courseId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a course')),
-      );
+      ToastUtil.showError('Please select a course');
       return;
     }
     
@@ -162,35 +177,20 @@ class _AddEditDeadlineScreenState extends State<AddEditDeadlineScreen> {
         // Adding new deadline
         await deadlineProvider.addDeadline(deadline);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Deadline added successfully'),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
+          ToastUtil.showSuccess('Deadline added successfully');
           Navigator.of(context).pop(true); // Return true to indicate success
         }
       } else {
         // Updating existing deadline
         await deadlineProvider.updateDeadline(deadline);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Deadline updated successfully'),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
+          ToastUtil.showSuccess('Deadline updated successfully');
           Navigator.of(context).pop(true); // Return true to indicate success
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        ToastUtil.showError('Error: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -383,7 +383,7 @@ class _AddEditDeadlineScreenState extends State<AddEditDeadlineScreen> {
                               prefixIcon: Icon(Icons.calendar_today),
                             ),
                             controller: TextEditingController(
-                              text: DateFormat('MMM dd, yyyy').format(_dueDate),
+                              text: _getSmartDate(_dueDate),
                             ),
                             onTap: _pickDate,
                           ),

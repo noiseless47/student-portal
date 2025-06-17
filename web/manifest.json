@@ -1,6 +1,6 @@
 {
-    "name": "student_help",
-    "short_name": "student_help",
+    "name": "ClassMate",
+    "short_name": "ClassMate",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",

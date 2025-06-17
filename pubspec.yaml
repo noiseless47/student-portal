@@ -1,5 +1,5 @@
-name: student_help
-description: "A student portal for tracking attendance, timetables, and deadlines."
+name: classmate
+description: "ClassMate: The modern app for students to manage attendance, schedules, and deadlines."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 2.1.0
 
 environment:
   sdk: ^3.6.0
@@ -42,9 +42,15 @@ dependencies:
   flutter_svg: ^2.0.9
   lottie: ^2.7.0
   flutter_staggered_animations: ^1.1.1
-  cached_network_image: ^3.3.1
+  cached_network_image: ^3.4.1
   url_launcher: ^6.2.4
-  font_awesome_flutter: ^10.7.0
+  font_awesome_flutter: ^10.8.0
+  fluttertoast: ^8.2.12
+  confetti: ^0.8.0
+  liquid_pull_to_refresh: ^3.0.1
+  flutter_local_notifications: ^19.2.1
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.1
 
 dev_dependencies:
   flutter_test:
@@ -118,3 +124,27 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: Lexend
+      fonts:
+        - asset: assets/fonts/lexend/static/Lexend-Regular.ttf
+        - asset: assets/fonts/lexend/static/Lexend-Bold.ttf
+        - asset: assets/fonts/lexend/static/Lexend-SemiBold.ttf
+        - asset: assets/fonts/lexend/static/Lexend-Medium.ttf
+        - asset: assets/fonts/lexend/static/Lexend-Light.ttf
+        - asset: assets/fonts/lexend/static/Lexend-Thin.ttf
+        - asset: assets/fonts/lexend/static/Lexend-ExtraBold.ttf
+        - asset: assets/fonts/lexend/static/Lexend-ExtraLight.ttf
+        - asset: assets/fonts/lexend/static/Lexend-Black.ttf
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/outfit/static/Outfit-Regular.ttf
+        - asset: assets/fonts/outfit/static/Outfit-Bold.ttf
+        - asset: assets/fonts/outfit/static/Outfit-SemiBold.ttf
+        - asset: assets/fonts/outfit/static/Outfit-Medium.ttf
+        - asset: assets/fonts/outfit/static/Outfit-Light.ttf
+        - asset: assets/fonts/outfit/static/Outfit-Thin.ttf
+        - asset: assets/fonts/outfit/static/Outfit-ExtraBold.ttf
+        - asset: assets/fonts/outfit/static/Outfit-ExtraLight.ttf
+        - asset: assets/fonts/outfit/static/Outfit-Black.ttf
